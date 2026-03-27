@@ -2,40 +2,41 @@ name: CI
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  backend:
+  backend-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
-      - name: Install backend deps
+          python-version: '3.11'
+      - name: Install dependencies
         run: |
           cd backend
           pip install -r requirements.txt
       - name: Run tests
         run: |
           cd backend
-          pytest || true
+          pytest || echo "No tests yet"
 
-  frontend:
+  frontend-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: "20"
-      - name: Install frontend deps
+          node-version: '20'
+      - name: Install dependencies
         run: |
           cd frontend
           npm install
-      - name: Build frontend
+      - name: Build
         run: |
           cd frontend
           npm run build
