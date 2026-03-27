@@ -7,9 +7,22 @@ const handle = async (res: Response) => {
 };
 
 const getHealthCheck = () => fetch('/api/healthz').then(handle);
-const getTemplates = () => fetch('/api/templates').then(handle);
-const getDeployments = () => fetch('/api/deployments').then(handle);
-const getAppRequests = () => fetch('/app-requests').then(handle);
+
+const getTemplates = async () => {
+  const data = await fetch('/api/templates').then(handle);
+  return data.templates || [];
+};
+
+const getDeployments = async () => {
+  const data = await fetch('/api/deployments').then(handle);
+  return data.items || [];
+};
+
+const getAppRequests = async () => {
+  const data = await fetch('/app-requests').then(handle);
+  return data.items || [];
+};
+
 const getAppRequestPrompt = (id: string) => fetch(`/app-requests/${id}/prompt`).then(handle);
 
 const createAppRequest = (payload: any) =>

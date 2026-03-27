@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../services/api';
 
 type Template = {
@@ -25,7 +25,7 @@ export function NewAppRequest() {
 
   useEffect(() => {
     api.getTemplates()
-      .then((data: Template[]) => setTemplates(Array.isArray(data) ? data : []))
+      .then((data) => setTemplates(Array.isArray(data) ? data : []))
       .catch((err: any) => setError(err?.message || 'Failed to load templates'));
   }, []);
 

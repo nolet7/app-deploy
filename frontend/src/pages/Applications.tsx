@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { GenerationViewer } from '../components/GenerationViewer';
 
@@ -33,14 +33,7 @@ export function Applications({ onViewPrompt }: ApplicationsProps) {
       setLoading(true);
       setError('');
       const data = await api.getAppRequests();
-
-      if (Array.isArray(data)) {
-        setItems(data);
-      } else if (Array.isArray(data?.items)) {
-        setItems(data.items);
-      } else {
-        setItems([]);
-      }
+      setItems(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err?.message || 'Failed to load applications');
     } finally {

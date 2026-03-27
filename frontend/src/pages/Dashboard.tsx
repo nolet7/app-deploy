@@ -134,7 +134,7 @@ export function Dashboard() {
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-gray-600">System Status</span>
-              <Badge variant={stats.healthStatus === 'healthy' ? 'success' : 'warning'}>
+              <Badge variant={stats.healthStatus === 'ok' ? 'success' : 'warning'}>
                 {stats.healthStatus}
               </Badge>
             </div>
@@ -143,16 +143,28 @@ export function Dashboard() {
 
         <Card title="Quick Actions">
           <div className="space-y-3">
-            <button className="w-full px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-left font-medium">
+            <button
+              onClick={() => window.location.hash = '/new-request'}
+              className="w-full px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-left font-medium"
+            >
               Create New App Request
             </button>
-            <button className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium">
+            <button
+              onClick={() => window.location.hash = '/applications'}
+              className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium"
+            >
               View All Applications
             </button>
-            <button className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium">
+            <button
+              onClick={() => window.location.hash = '/templates'}
+              className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium"
+            >
               Browse Templates
             </button>
-            <button className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium">
+            <button
+              onClick={() => window.location.hash = '/deployments'}
+              className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-left font-medium"
+            >
               Check Deployments
             </button>
           </div>
