@@ -1,38 +1,39 @@
-async function handle(res: Response) {
+const handle = async (res: Response) => {
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
+    throw new Error(text || 'Request failed');
   }
   return res.json();
-}
+};
 
-export const fetchHealth = () => fetch('/api/healthz').then(handle);
-export const fetchTemplates = () => fetch('/api/templates').then(handle);
-export const fetchAppRequests = () => fetch('/app-requests').then(handle);
-export const createAppRequest = (payload: unknown) =>
+const getTemplates = () => fetch('/api/templates').then(handle);
+const getDeployments = () => fetch('/api/deployments').then(handle);
+const getHealth = () => fetch('/api/healthz').then(handle);
+const getAppRequests = () => fetch('/app-requests').then(handle);
+const getAppRequestPrompt = (id: string) => fetch(`/app-requests/${id}/prompt`).then(handle);
+
+const createAppRequest = (payload: any) =>
   fetch('/app-requests', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }).then(handle);
 
-export const fetchDeployments = () => fetch('/api/deployments').then(handle);
-export const createDeployment = (payload: unknown) =>
-  fetch('/api/deployments', {
+const generateApp = (id: string) =>
+  fetch(`/app-requests/${id}/generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
   }).then(handle);
 
-export const fetchPrompt = (id: number | string) =>
-  fetch(`/api/app-requests/${id}/prompt`).then(handle);
+const getGeneration = (id: string) =>
+  fetch(`/app-requests/${id}/generation`).then(handle);
 
 export const api = {
-  getHealth: fetchHealth,
-  getTemplates: fetchTemplates,
-  getAppRequests: fetchAppRequests,
+  getTemplates,
+  getDeployments,
+  getHealth,
+  getAppRequests,
+  getPrompt: getAppRequestPrompt,
   createAppRequest,
-  getDeployments: fetchDeployments,
-  createDeployment,
-  getPrompt: fetchPrompt,
+  generateApp,
+  getGeneration,
 };

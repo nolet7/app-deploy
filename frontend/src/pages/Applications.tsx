@@ -1,257 +1,152 @@
-import { useEffect, useState } from 'react';
-import { Eye, FileCode, Rocket } from 'lucide-react';
-import { Card } from '../components/Card';
-import { Table } from '../components/Table';
-import { Button } from '../components/Button';
-import { Badge, getStatusBadgeVariant } from '../components/Badge';
-import { PageLoader } from '../components/LoadingSpinner';
-import { Alert } from '../components/Alert';
-import { Modal } from '../components/Modal';
+import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import type { AppRequest } from '../types';
 
-interface ApplicationsProps {
-  onViewPrompt: (requestId: string) => void;
-}
+type AppRequest = {
+  id: number;
+  app_name: string;
+  description: string;
+  template_name: string;
+  environment: string;
+  ingress_type?: string;
+  owner_team?: string;
+  status: string;
+  requires_database: boolean;
+  requires_cache: boolean;
+};
+
+type ApplicationsProps = {
+  onViewPrompt?: (requestId: string) => void;
+};
 
 export function Applications({ onViewPrompt }: ApplicationsProps) {
-  const [applications, setApplications] = useState<AppRequest[]>([]);
+  const [items, setItems] = useState<AppRequest[]>([]);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedApp, setSelectedApp] = useState<AppRequest | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [deployingId, setDeployingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  async function loadApplications() {
-    setLoading(true);
-    setError(null);
-
+  async function loadItems() {
     try {
+      setLoading(true);
+      setError('');
       const data = await api.getAppRequests();
-      setApplications(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load applications');
+
+      if (Array.isArray(data)) {
+        setItems(data);
+      } else if (Array.isArray(data?.items)) {
+        setItems(data.items);
+      } else {
+        setItems([]);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load applications');
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDeploy(requestId: string) {
-    setDeployingId(requestId);
+  useEffect(() => {
+    loadItems();
+  }, []);
 
+  async function handleGenerate(id: number) {
     try {
-      await api.createDeployment({ request_id: requestId });
-      await loadApplications();
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create deployment');
+      setBusyId(id);
+      setMessage('');
+      const result = await api.generateApp(String(id));
+      setMessage(`Generated app files for request ${id} in ${result.output_dir}`);
+      await loadItems();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to generate app');
     } finally {
-      setDeployingId(null);
+      setBusyId(null);
     }
   }
 
-  function handleViewDetails(app: AppRequest) {
-    setSelectedApp(app);
-    setShowDetailsModal(true);
-  }
-
-  if (loading) {
-    return <PageLoader />;
-  }
-
-  const columns = [
-    {
-      key: 'id',
-      header: 'ID',
-      render: (app: AppRequest) => (
-        <span className="font-mono text-xs text-gray-600">{app.id.slice(0, 8)}</span>
-      ),
-    },
-    {
-      key: 'app_name',
-      header: 'App Name',
-      render: (app: AppRequest) => (
-        <span className="font-medium text-gray-900">{app.app_name}</span>
-      ),
-    },
-    {
-      key: 'template_name',
-      header: 'Template',
-      render: (app: AppRequest) => (
-        <span className="text-gray-700">{app.template_name}</span>
-      ),
-    },
-    {
-      key: 'environment',
-      header: 'Environment',
-      render: (app: AppRequest) => (
-        <Badge variant="info" size="sm">
-          {app.environment}
-        </Badge>
-      ),
-    },
-    {
-      key: 'owner_team',
-      header: 'Owner Team',
-      render: (app: AppRequest) => (
-        <span className="text-gray-700">{app.owner_team}</span>
-      ),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (app: AppRequest) => (
-        <Badge variant={getStatusBadgeVariant(app.status)} size="sm">
-          {app.status}
-        </Badge>
-      ),
-    },
-    {
-      key: 'ingress_type',
-      header: 'Ingress',
-      render: (app: AppRequest) => (
-        <span className="text-gray-700">{app.ingress_type}</span>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (app: AppRequest) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleViewDetails(app)}
-            className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onViewPrompt(app.id)}
-            className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
-            title="Generate Prompt"
-          >
-            <FileCode className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleDeploy(app.id)}
-            disabled={deployingId === app.id}
-            className="p-1.5 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors disabled:opacity-50"
-            title="Deploy"
-          >
-            <Rocket className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      {error && (
-        <Alert variant="error" title="Error" onClose={() => setError(null)}>
-          {error}
-        </Alert>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Applications</h1>
+        <p className="text-gray-600">Submitted application onboarding requests.</p>
+      </div>
+
+      {message && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-green-700">
+          {message}
+        </div>
       )}
 
-      <Card
-        title="Applications"
-        action={
-          <Button
-            variant="primary"
-            onClick={() => (window.location.hash = '/new-request')}
-            size="sm"
-          >
-            New Request
-          </Button>
-        }
-      >
-        <Table
-          data={applications}
-          columns={columns}
-          emptyMessage="No applications found. Create your first app request to get started."
-        />
-      </Card>
+      {loading && (
+        <div className="bg-white shadow rounded-2xl p-6">Loading applications...</div>
+      )}
 
-      {selectedApp && (
-        <Modal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          title="Application Details"
-          size="lg"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Request ID</label>
-                <p className="font-mono text-sm text-gray-900">{selectedApp.id}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
-                <Badge variant={getStatusBadgeVariant(selectedApp.status)}>
-                  {selectedApp.status}
-                </Badge>
-              </div>
-            </div>
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-700">
+          {error}
+        </div>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">App Name</label>
-              <p className="text-gray-900">{selectedApp.app_name}</p>
-            </div>
+      {!loading && !error && items.length === 0 && (
+        <div className="bg-white shadow rounded-2xl p-6">No application requests found.</div>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
-              <p className="text-gray-900">{selectedApp.description}</p>
-            </div>
+      {!loading && !error && items.length > 0 && (
+        <div className="bg-white shadow rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">ID</th>
+                  <th className="px-4 py-3 font-semibold">App Name</th>
+                  <th className="px-4 py-3 font-semibold">Template</th>
+                  <th className="px-4 py-3 font-semibold">Environment</th>
+                  <th className="px-4 py-3 font-semibold">Owner</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Database</th>
+                  <th className="px-4 py-3 font-semibold">Cache</th>
+                  <th className="px-4 py-3 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.id} className="border-t">
+                    <td className="px-4 py-3">{item.id}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{item.app_name}</div>
+                      <div className="text-gray-500">{item.description}</div>
+                    </td>
+                    <td className="px-4 py-3">{item.template_name}</td>
+                    <td className="px-4 py-3">{item.environment}</td>
+                    <td className="px-4 py-3">{item.owner_team || '-'}</td>
+                    <td className="px-4 py-3">{item.status}</td>
+                    <td className="px-4 py-3">{item.requires_database ? 'Yes' : 'No'}</td>
+                    <td className="px-4 py-3">{item.requires_cache ? 'Yes' : 'No'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onViewPrompt?.(String(item.id))}
+                          className="px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                        >
+                          View Prompt
+                        </button>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Template</label>
-                <p className="text-gray-900">{selectedApp.template_name}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Environment</label>
-                <p className="text-gray-900">{selectedApp.environment}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Owner Team</label>
-                <p className="text-gray-900">{selectedApp.owner_team}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Ingress Type</label>
-                <p className="text-gray-900">{selectedApp.ingress_type}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Requires Database</label>
-                <Badge variant={selectedApp.requires_database ? 'success' : 'default'}>
-                  {selectedApp.requires_database ? 'Yes' : 'No'}
-                </Badge>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Requires Cache</label>
-                <Badge variant={selectedApp.requires_cache ? 'success' : 'default'}>
-                  {selectedApp.requires_cache ? 'Yes' : 'No'}
-                </Badge>
-              </div>
-            </div>
-
-            {selectedApp.created_at && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Created At</label>
-                <p className="text-gray-900">{new Date(selectedApp.created_at).toLocaleString()}</p>
-              </div>
-            )}
+                        <button
+                          type="button"
+                          onClick={() => handleGenerate(item.id)}
+                          disabled={busyId === item.id}
+                          className="px-3 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {busyId === item.id ? 'Generating...' : 'Generate App'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Modal>
+        </div>
       )}
     </div>
   );
