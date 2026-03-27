@@ -1,5 +1,3 @@
-const API_BASE = '/api';
-
 async function handle(res: Response) {
   if (!res.ok) {
     const text = await res.text();
@@ -8,14 +6,33 @@ async function handle(res: Response) {
   return res.json();
 }
 
-export const fetchHealth = () => fetch(`${API_BASE}/healthz`).then(handle);
-export const fetchTemplates = () => fetch(`${API_BASE}/templates`).then(handle);
-export const fetchDeployments = () => fetch(`${API_BASE}/deployments`).then(handle);
+export const fetchHealth = () => fetch('/api/healthz').then(handle);
+export const fetchTemplates = () => fetch('/api/templates').then(handle);
 export const fetchAppRequests = () => fetch('/app-requests').then(handle);
-
-export const createDeployment = (payload: unknown) =>
-  fetch(`${API_BASE}/deployments`, {
+export const createAppRequest = (payload: unknown) =>
+  fetch('/app-requests', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }).then(handle);
+
+export const fetchDeployments = () => fetch('/api/deployments').then(handle);
+export const createDeployment = (payload: unknown) =>
+  fetch('/api/deployments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(handle);
+
+export const fetchPrompt = (id: number | string) =>
+  fetch(`/api/app-requests/${id}/prompt`).then(handle);
+
+export const api = {
+  getHealth: fetchHealth,
+  getTemplates: fetchTemplates,
+  getAppRequests: fetchAppRequests,
+  createAppRequest,
+  getDeployments: fetchDeployments,
+  createDeployment,
+  getPrompt: fetchPrompt,
+};

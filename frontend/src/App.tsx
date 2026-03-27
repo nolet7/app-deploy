@@ -1,26 +1,83 @@
-import React, { useState } from 'react'
-import Home from './pages/Home'
-import Applications from './pages/Applications'
-import Deployments from './pages/Deployments'
+import { useState } from 'react';
+import { MainLayout } from './layouts/MainLayout';
+import { Dashboard } from './pages/Dashboard';
+import { NewAppRequest } from './pages/NewAppRequest';
+import { Applications } from './pages/Applications';
+import { Templates } from './pages/Templates';
+import { Deployments } from './pages/Deployments';
+import { Admin } from './pages/Admin';
+import { PromptViewer } from './components/PromptViewer';
+import { useRouter } from './hooks/useRouter';
 
-export default function App() {
-  const [page, setPage] = useState<'home' | 'applications' | 'deployments'>('home')
+interface PageConfig {
+  title: string;
+  subtitle?: string;
+  component: React.ReactNode;
+}
+
+function App() {
+  const { currentPath, navigate } = useRouter();
+  const [promptViewerOpen, setPromptViewerOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+
+  function handleViewPrompt(requestId: string) {
+    setSelectedRequestId(requestId);
+    setPromptViewerOpen(true);
+  }
+
+  const pages: Record<string, PageConfig> = {
+    '/': {
+      title: 'Dashboard',
+      subtitle: 'Platform overview and recent activity',
+      component: <Dashboard />,
+    },
+    '/new-request': {
+      title: 'New App Request',
+      subtitle: 'Create a new application deployment request',
+      component: <NewAppRequest />,
+    },
+    '/applications': {
+      title: 'Applications',
+      subtitle: 'Manage and monitor all application requests',
+      component: <Applications onViewPrompt={handleViewPrompt} />,
+    },
+    '/templates': {
+      title: 'Templates',
+      subtitle: 'Browse available application templates',
+      component: <Templates />,
+    },
+    '/deployments': {
+      title: 'Deployments',
+      subtitle: 'Track deployment history and status',
+      component: <Deployments />,
+    },
+    '/admin': {
+      title: 'Administration',
+      subtitle: 'Platform configuration and management',
+      component: <Admin />,
+    },
+  };
+
+  const currentPage = pages[currentPath] || pages['/'];
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', minHeight: '100vh', background: '#fafafa', color: '#111' }}>
-      <div style={{ padding: 24, borderBottom: '1px solid #ddd', background: '#fff' }}>
-        <h1 style={{ margin: 0 }}>app-deploy</h1>
-        <p style={{ marginTop: 8 }}>Internal Developer Platform MVP</p>
-        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-          <button onClick={() => setPage('home')}>Home</button>
-          <button onClick={() => setPage('applications')}>Applications</button>
-          <button onClick={() => setPage('deployments')}>Deployments</button>
-        </div>
-      </div>
+    <>
+      <MainLayout
+        title={currentPage.title}
+        subtitle={currentPage.subtitle}
+        currentPath={currentPath}
+        onNavigate={navigate}
+      >
+        {currentPage.component}
+      </MainLayout>
 
-      {page === 'home' && <Home />}
-      {page === 'applications' && <Applications />}
-      {page === 'deployments' && <Deployments />}
-    </div>
-  )
+      <PromptViewer
+        requestId={selectedRequestId}
+        isOpen={promptViewerOpen}
+        onClose={() => setPromptViewerOpen(false)}
+      />
+    </>
+  );
 }
+
+export default App;
