@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
+import { GenerationViewer } from '../components/GenerationViewer';
 
 type AppRequest = {
   id: number;
@@ -24,6 +25,8 @@ export function Applications({ onViewPrompt }: ApplicationsProps) {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
+  const [generationOpen, setGenerationOpen] = useState(false);
+  const [selectedGenerationId, setSelectedGenerationId] = useState<string | null>(null);
 
   async function loadItems() {
     try {
@@ -53,9 +56,11 @@ export function Applications({ onViewPrompt }: ApplicationsProps) {
     try {
       setBusyId(id);
       setMessage('');
-      const result = await api.generateApp(String(id));
-      setMessage(`Generated app files for request ${id} in ${result.output_dir}`);
+      await api.generateApp(String(id));
+      setMessage(`Generated app files for request ${id}`);
       await loadItems();
+      setSelectedGenerationId(String(id));
+      setGenerationOpen(true);
     } catch (err: any) {
       setError(err?.message || 'Failed to generate app');
     } finally {
@@ -139,6 +144,17 @@ export function Applications({ onViewPrompt }: ApplicationsProps) {
                         >
                           {busyId === item.id ? 'Generating...' : 'Generate App'}
                         </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedGenerationId(String(item.id));
+                            setGenerationOpen(true);
+                          }}
+                          className="px-3 py-1 rounded-lg bg-slate-700 text-white hover:bg-slate-800"
+                        >
+                          View Generation
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -148,6 +164,12 @@ export function Applications({ onViewPrompt }: ApplicationsProps) {
           </div>
         </div>
       )}
+
+      <GenerationViewer
+        requestId={selectedGenerationId}
+        isOpen={generationOpen}
+        onClose={() => setGenerationOpen(false)}
+      />
     </div>
   );
 }
