@@ -1,15 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from app.api.routes.app_requests import get_app_request_by_id
 
 router = APIRouter()
 
 DEPLOYMENTS = []
 NEXT_DEPLOYMENT_ID = 1
-
-try:
-    from app.api.routes.app_requests import APP_REQUESTS
-except Exception:
-    APP_REQUESTS = []
 
 
 class DeploymentCreate(BaseModel):
@@ -29,12 +25,7 @@ def list_deployments():
 def create_deployment(payload: DeploymentCreate):
     global NEXT_DEPLOYMENT_ID
 
-    matched_request = None
-    for item in APP_REQUESTS:
-        if item.get("id") == payload.request_id:
-            matched_request = item
-            break
-
+    matched_request = get_app_request_by_id(payload.request_id)
     if not matched_request:
         raise HTTPException(status_code=404, detail="App request not found")
 
