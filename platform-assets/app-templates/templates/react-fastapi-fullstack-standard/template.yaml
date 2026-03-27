@@ -1,0 +1,16 @@
+name: react-fastapi-fullstack-standard
+type: fullstack
+framework: react-fastapi
+runtime: node-python
+description: Standard full-stack template
+requires_database: true
+requires_cache: optional
+ingress: public_or_internal
+default_resources:
+  cpu: "500m"
+  memory: "512Mi"
+required_files:
+  - frontend/Dockerfile
+  - backend/Dockerfile
+  - .env.example
+  - README.md

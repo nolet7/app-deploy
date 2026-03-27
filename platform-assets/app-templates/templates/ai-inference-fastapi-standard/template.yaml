@@ -1,0 +1,16 @@
+name: ai-inference-fastapi-standard
+type: ai-inference-api
+framework: fastapi
+runtime: python
+description: AI inference API template
+requires_database: false
+requires_cache: optional
+ingress: internal_or_public
+default_resources:
+  cpu: "500m"
+  memory: "512Mi"
+required_files:
+  - Dockerfile
+  - .env.example
+  - README.md
+  - requirements.txt

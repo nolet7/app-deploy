@@ -1,0 +1,16 @@
+name: fastapi-api-standard
+type: backend-api
+framework: fastapi
+runtime: python
+description: Standard FastAPI backend template
+requires_database: optional
+requires_cache: optional
+ingress: internal
+default_resources:
+  cpu: "250m"
+  memory: "256Mi"
+required_files:
+  - Dockerfile
+  - .env.example
+  - README.md
+  - requirements.txt

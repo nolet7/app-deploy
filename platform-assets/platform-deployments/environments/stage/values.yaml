@@ -1,0 +1,6 @@
+env:
+  APP_ENV: stage
+ingress:
+  enabled: true
+serviceMonitor:
+  enabled: true

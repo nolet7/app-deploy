@@ -1,0 +1,16 @@
+name: react-frontend-standard
+type: frontend
+framework: react
+runtime: node
+description: Standard React frontend template
+requires_database: false
+requires_cache: false
+ingress: public_or_internal
+default_resources:
+  cpu: "250m"
+  memory: "256Mi"
+required_files:
+  - Dockerfile
+  - .env.example
+  - README.md
+  - package.json

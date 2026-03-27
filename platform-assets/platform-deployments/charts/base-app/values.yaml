@@ -1,0 +1,38 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: REPOSITORY_PLACEHOLDER
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: false
+  className: nginx
+  host: app.example.local
+  path: /
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+env:
+  APP_ENV: dev
+
+serviceMonitor:
+  enabled: false

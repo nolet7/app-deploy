@@ -1,0 +1,61 @@
+Act as a senior application engineer.
+
+Build application code only.
+Do not create Terraform, Kubernetes manifests, Helm charts, cloud resources, or CI/CD workflows.
+Do not hardcode secrets.
+Use environment variables for all configuration.
+
+Application request:
+- App name: Forgejo
+- Description: ship
+- Template name: react-fastapi-fullstack-standard
+- Environment: dev
+- Requires database: true
+- Requires cache: true
+- Ingress type: internal
+- Owner team: team
+
+Template metadata:
+- Type: fullstack
+- Framework: react-fastapi
+- Runtime: node-python
+- Description: Standard full-stack template
+- Ingress expectation: public_or_internal
+- Required files:
+  - frontend/Dockerfile
+  - backend/Dockerfile
+  - .env.example
+  - README.md
+
+Build a production-ready full-stack starter application with:
+- React frontend
+- FastAPI backend
+- PostgreSQL-ready configuration through environment variables
+- optional cache configuration through environment variables
+- clear separation between frontend and backend
+- Dockerfile for frontend
+- Dockerfile for backend
+- .env.example
+- README.md
+- backend health endpoint
+- structured backend logging
+- input validation
+- starter tests
+
+Functional expectations:
+- frontend page with simple branded landing page
+- frontend form or dashboard placeholder
+- backend API with at least:
+  - GET /healthz
+  - GET /api/v1/info
+- backend project structure under backend/app
+- frontend project structure under frontend/src
+
+Platform constraints:
+- no secrets in source code
+- config must come from environment variables
+- code must be container-ready
+- code should support future CI/CD and Helm deployment
+- keep business logic organized and readable
+
+Return complete starter application code only.

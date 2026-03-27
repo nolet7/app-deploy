@@ -1,0 +1,54 @@
+services:
+  backend:
+    build: ./backend
+    container_name: app-deploy-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ENVIRONMENT: ${ENVIRONMENT}
+      APP_ENV: ${APP_ENV}
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: app-deploy-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: app-deploy-postgres
+    environment:
+      POSTGRES_DB: app_deploy
+      POSTGRES_USER: app_deploy
+      POSTGRES_PASSWORD: appdeploy123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: app-deploy-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
