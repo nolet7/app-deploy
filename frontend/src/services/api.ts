@@ -6,9 +6,9 @@ const handle = async (res: Response) => {
   return res.json();
 };
 
+const getHealthCheck = () => fetch('/api/healthz').then(handle);
 const getTemplates = () => fetch('/api/templates').then(handle);
 const getDeployments = () => fetch('/api/deployments').then(handle);
-const getHealth = () => fetch('/api/healthz').then(handle);
 const getAppRequests = () => fetch('/app-requests').then(handle);
 const getAppRequestPrompt = (id: string) => fetch(`/app-requests/${id}/prompt`).then(handle);
 
@@ -28,11 +28,11 @@ const getGeneration = (id: string) =>
   fetch(`/app-requests/${id}/generation`).then(handle);
 
 export const api = {
+  getHealthCheck,
   getTemplates,
   getDeployments,
-  getHealth,
   getAppRequests,
-  getPrompt: getAppRequestPrompt,
+  getAppRequestPrompt,
   createAppRequest,
   generateApp,
   getGeneration,
