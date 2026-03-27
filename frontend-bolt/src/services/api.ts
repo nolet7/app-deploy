@@ -10,6 +10,32 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+type CollectionEnvelope<T> = T[] | { items: T[] };
+
+function unwrapCollection<T>(data: CollectionEnvelope<T>): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object' && 'items' in data && Array.isArray(data.items)) {
+    return data.items;
+  }
+  return [];
+}
+
+function normalizeAppRequest(app: AppRequest): AppRequest {
+  return {
+    ...app,
+    id: String(app.id),
+  };
+}
+
+function normalizeDeployment(deployment: Deployment): Deployment {
+  return {
+    ...deployment,
+    id: String(deployment.id),
+    request_id: String(deployment.request_id),
+  };
+}
+
+
 class ApiError extends Error {
   constructor(
     message: string,
@@ -59,7 +85,8 @@ export const api = {
 
   async getAppRequests(): Promise<AppRequest[]> {
     const response = await fetch(`${API_BASE_URL}/app-requests`);
-    return handleResponse<AppRequest[]>(response);
+    const data = await handleResponse<CollectionEnvelope<AppRequest>>(response);
+    return unwrapCollection(data).map(normalizeAppRequest);
   },
 
   async createAppRequest(payload: CreateAppRequestPayload): Promise<AppRequest> {
@@ -70,12 +97,14 @@ export const api = {
       },
       body: JSON.stringify(payload),
     });
-    return handleResponse<AppRequest>(response);
+    const data = await handleResponse<AppRequest>(response);
+    return normalizeAppRequest(data);
   },
 
   async getDeployments(): Promise<Deployment[]> {
     const response = await fetch(`${API_BASE_URL}/api/deployments`);
-    return handleResponse<Deployment[]>(response);
+    const data = await handleResponse<CollectionEnvelope<Deployment>>(response);
+    return unwrapCollection(data).map(normalizeDeployment);
   },
 
   async createDeployment(payload: CreateDeploymentPayload): Promise<Deployment> {
@@ -86,7 +115,8 @@ export const api = {
       },
       body: JSON.stringify(payload),
     });
-    return handleResponse<Deployment>(response);
+    const data = await handleResponse<Deployment>(response);
+    return normalizeDeployment(data);
   },
 
   async getAppRequestPrompt(requestId: string): Promise<PromptResponse> {

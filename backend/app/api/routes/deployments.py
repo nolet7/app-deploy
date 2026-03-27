@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
 from app.api.routes.app_requests import get_app_request_by_id
 
 router = APIRouter()
@@ -12,7 +13,7 @@ class DeploymentCreate(BaseModel):
     request_id: int
     environment: str = "dev"
     status: str = "DEPLOYED"
-    namespace: str
+    namespace: str | None = None
     image_tag: str = "v1.0.0"
 
 
@@ -29,13 +30,15 @@ def create_deployment(payload: DeploymentCreate):
     if not matched_request:
         raise HTTPException(status_code=404, detail="App request not found")
 
+    namespace = payload.namespace or f"{matched_request['app_name']}-{payload.environment}"
+
     deployment = {
         "id": NEXT_DEPLOYMENT_ID,
         "request_id": payload.request_id,
         "app_name": matched_request["app_name"],
         "environment": payload.environment,
         "status": payload.status,
-        "namespace": payload.namespace,
+        "namespace": namespace,
         "image_tag": payload.image_tag,
     }
 
